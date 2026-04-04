@@ -114,13 +114,9 @@ def start():
             sys.exit(1)
         network, major, minor = bestVersion.split(".")
         cNetwork, cMajor, cMinor = VERSION.split(".")
-        if (network != cNetwork or major != cMajor) and VERSION != "-1.-1.-1":
-            print(f"\033[31mERROR: Your current version {VERSION} is incompatible with the network version {bestVersion}"
-                  f"\nYou can download the latest version at https://drive.google.com/drive/folders/15CLoFX3Z8pITuvwx_9Ra4Ymze9VyrV-n?usp=drive_link\033[0m")
-            sys.exit(1)
-        elif minor != cMinor and VERSION != "-1.-1.-1":
-            print(f"\033[33mWARNING: Your current version is {VERSION}, however a new version is available: {bestVersion}"
-                  f"\nYou can download the latest version at https://drive.google.com/drive/folders/15CLoFX3Z8pITuvwx_9Ra4Ymze9VyrV-n?usp=drive_link\033[0m")
+        if ((network != cNetwork or major != cMajor) and VERSION != "-1.-1.-1") or (minor != cMinor and VERSION != "-1.-1.-1"):
+            subprocess.Popen([sys.executable, "update.py"])
+            sys.exit()
         with open(BLOCKS, "r") as f:
             original = [line.strip() for line in f.readlines() if line.strip()]
         global ID, transactions
