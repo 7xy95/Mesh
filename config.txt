@@ -1,0 +1,5 @@
+refreshFreq=0.4
+sleepCheckTime=5
+onlyNode=0
+notifyIfNoResponse=1
+processCount=2
