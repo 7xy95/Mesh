@@ -12,6 +12,7 @@ import os, termios, tty, select, multiprocessing, faulthandler, signal, api
 faulthandler.register(signal.SIGUSR1)
 
 from coincurve import PrivateKey, PublicKey
+from collections import deque
 #Colors: 31: red, 32 green, 33 yellow, 34 blue, 35 magenta, 36 cyan, 37 white
 
 BLOCKS = "blocks.txt"
@@ -498,6 +499,24 @@ def getHistory(address) -> str:
                 if toAddress == address: history += f"\n\033[35m[Unverified]\033[0m \033[32m+{(int(amount)-getFee(int(amount)))/1000:.3f}\033[0m Received from {formatAddress(fromAddress)}"
         except ValueError: continue
     return history
+def getRecentTxs(address) -> str:
+    info = ""
+    with open(BLOCKS, "r") as f:
+        blocks = deque(f, maxlen=24)
+    b = getBlockCount() + 1
+    for block in blocks:
+        b -= 1
+        txs: list[str] = ast.literal_eval(block.strip().split(",", 1)[1])
+        for tx in txs:
+            if tx.startswith("SYSTEM|"):
+                parts = tx.split("|")
+                if parts[1] == address: info += f"SYSTEM|{address}|{getBlockReward(b)},"
+            else:
+                tx = tx.split("||")[0]
+                fromAddress, toAddress, amount, nonce = tx.split("|")
+                if fromAddress == address: info += f"{address}|{toAddress}|{amount}"
+                if toAddress == address: info += f"{fromAddress}|{address}|{amount}"
+    return info
 def getNextNonce(address) -> int:
     nonce = 0
     with open(BLOCKS, "r") as f:
@@ -779,6 +798,13 @@ def check():
                 if NETWORK_INFO: print(f"\033[36m[SENDING]\033[0m block count to node {senderId}")
                 with open(BLOCKS, "r") as f:
                     api.sendMessage(senderId, ID[0], f"r:getBlockCount:{len(f.readlines())}")
+            elif message.startswith("getBalance:"):
+                addr = message[11:]
+                v, unV = getBalance(addr)
+                api.sendMessage(senderId, ID[0], f"r:getBalance:{v},{unV}")
+            elif message.startswith("getRecentTxs:"):
+                addr = message[13:]
+                api.sendMessage(senderId, ID[0], f"r:getRecentTxs:{getRecentTxs(addr)}")
             elif message.startswith("getLastBlocks:"):
                 try:
                     amount = int(message[14:])
