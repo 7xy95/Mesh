@@ -4,6 +4,8 @@ import time
 import random
 import requests
 from requests.adapters import HTTPAdapter
+import certifi
+os.environ["SSL_CERT_FILE"] = certifi.where()
 
 SERVER_URL = "https://roman-expanding-alias-talent.trycloudflare.com/"
 SUPABASE_URL = "https://ewtyvhvrsozprrmximfj.supabase.co"
