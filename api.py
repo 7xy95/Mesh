@@ -1,5 +1,6 @@
 # This script is NOT made by me as I am NOT dealing with networking issues!
 import threading
+import os
 import time
 import random
 import requests
