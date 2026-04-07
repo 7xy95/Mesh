@@ -8,6 +8,7 @@ def packageCheck(name):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", name])
 packageCheck("coincurve")
 packageCheck("requests")
+packageCheck("certifi")
 import os, termios, tty, select, multiprocessing, faulthandler, signal, api
 faulthandler.register(signal.SIGUSR1)
 
