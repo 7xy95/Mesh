@@ -1,5 +1,7 @@
 import os, subprocess, sys, api
 import urllib.request as r
+import certifi
+os.environ["SSL_CERT_FILE"] = certifi.where()
 
 def update(name):
     with r.urlopen(url + name) as response:
