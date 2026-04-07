@@ -1,4 +1,4 @@
-import os, subprocess, sys, api
+import os, subprocess, sys, api, os
 import urllib.request as r
 import certifi
 os.environ["SSL_CERT_FILE"] = certifi.where()
