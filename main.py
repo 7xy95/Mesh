@@ -117,7 +117,7 @@ def start():
         cNetwork, cMajor, cMinor = VERSION.split(".")
         if ((network != cNetwork or major != cMajor) and VERSION != "-1.-1.-1") or (minor != cMinor and VERSION != "-1.-1.-1"):
             subprocess.Popen([sys.executable, "update.py"])
-            time.sleep(0.5)
+            time.sleep(1.5)
             sys.exit()
         with open(BLOCKS, "r") as f:
             original = [line.strip() for line in f.readlines() if line.strip()]
