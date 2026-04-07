@@ -8,7 +8,9 @@ def packageCheck(name):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", name])
 packageCheck("coincurve")
 packageCheck("requests")
-import os, termios, tty, select, multiprocessing, api
+import os, termios, tty, select, multiprocessing, faulthandler, signal, api
+faulthandler.register(signal.SIGUSR1)
+
 from coincurve import PrivateKey, PublicKey
 from collections import deque
 #Colors: 31: red, 32 green, 33 yellow, 34 blue, 35 magenta, 36 cyan, 37 white
@@ -622,21 +624,19 @@ def input_(prompt=""):
     finally:
         termios.tcsetattr(stdinFd, termios.TCSADRAIN, oldSettings)
 def mine_(args):
-    sha = hashlib.sha256
+    os.nice(10)
     prefix, targetBytes, startNonce, count = args
     bestHashBytes = b"\xff" * 32
-    base = hashlib.sha256(prefix)
-    for nonce in range(startNonce, startNonce + count):
-        nonceBytes = str(nonce).encode("ascii")
-        firstHash = base.copy()
-        firstHash.update(nonceBytes)
-
-        hashBytes = sha(firstHash.digest()).digest()
+    foundNonce = None
+    attempts = 0
+    for nonce in range(startNonce, startNonce+count):
+        hashBytes = hashlib.sha256(hashlib.sha256(prefix + str(nonce).encode("utf-8")).digest()).digest()
+        attempts += 1
         if hashBytes < bestHashBytes: bestHashBytes = hashBytes
         if hashBytes <= targetBytes:
             foundNonce = nonce
-            return foundNonce, bestHashBytes, nonce - startNonce + 1
-    return None, bestHashBytes, count
+            return foundNonce, bestHashBytes, attempts
+    return None, bestHashBytes, attempts
 
 forkCase = False
 mine = False
@@ -661,7 +661,7 @@ def mining():
             for i in ids:
                     if i != ID[0]: api.sendMessage(i, ID[0], f"verifyBlock:{block}")
         global mine, miningInfo, address, mineProcesses
-        batchSize = 25_000
+        batchSize = 10000
         while True:
             if not mine:
                 time.sleep(0.1)
