@@ -15,7 +15,7 @@ faulthandler.register(signal.SIGUSR1)
 from coincurve import PrivateKey, PublicKey
 from collections import deque
 #Colors: 31: red, 32 green, 33 yellow, 34 blue, 35 magenta, 36 cyan, 37 white
-
+#todo: store chain in RAM rather than in a file
 BLOCKS = "blocks.txt"
 CONTACTS = "contactList.txt"
 with open("version.txt", "r") as f:
@@ -59,20 +59,19 @@ def getDifficultyBits(blockIndex: int) -> float:
     return 230+net
 def getBlockReward(blockIndex: int) -> int:
     if blockIndex < 5_000: return 10000
-    if blockIndex < 12_500: return 5000
-    if blockIndex < 23_750: return 2500
-    if blockIndex < 40_625: return 1250
-    if blockIndex < 65_938: return 625
-    if blockIndex < 103_906: return 313
-    if blockIndex < 160_859: return 156
-    if blockIndex < 246_289: return 78
-    if blockIndex < 374_433: return 39
-    if blockIndex < 566_649: return 20
-    if blockIndex < 854_973: return 10
-    if blockIndex < 1_287_460: return 5
-    if blockIndex < 1_936_191: return 2
-    if blockIndex < 4_368_930: return 1
-    else: return 0
+    if blockIndex < 15_000: return 5000
+    if blockIndex < 35_000: return 2500
+    if blockIndex < 75_000: return 1250
+    if blockIndex < 155_000: return 625
+    if blockIndex < 315_000: return 313
+    if blockIndex < 635_000: return 156
+    if blockIndex < 1_275_000: return 78
+    if blockIndex < 2_555_000: return 39
+    if blockIndex < 5_115_000: return 20
+    if blockIndex < 10_235_000: return 10
+    if blockIndex < 20_475_000: return 5
+    if blockIndex < 40_955_000: return 2
+    else: return 1
 
 def getContact(address: str) -> str:
     with open(CONTACTS, "r") as f:
@@ -148,7 +147,7 @@ def start():
                         gotCount = True
                     elif message.startswith("noResponse"):
                         allCorrect = False
-                        if int(CONFIGS[3]) == 1:print(f"Id {i} did not respond... requesting another id")
+                        if int(CONFIGS[3]) == 1: print(f"Id {i} did not respond... requesting another id")
                         break
                 finally: api.deleteMessageRow(rowId)
             if not allCorrect: continue
@@ -652,7 +651,7 @@ def laptopSleep():
         l = time.time()
         time.sleep(1)
         g = time.time() - l
-        if g > float(CONFIGS[1]): os._exit(0)
+        if g > 30 + float(CONFIGS[1]): os._exit(0)
 def mining():
     try:
         def broadcastBlock():
@@ -747,7 +746,7 @@ def peerCount():
             peers = len(ids) - 1
         except Exception: pass
 def check():
-    global transactions, forkCase, speeds
+    global transactions, forkCase
     while True:
         try:
             message, senderId, rowId = api.getNextMessage(ID[0])
@@ -830,6 +829,10 @@ def check():
                 if length < len(original): continue
                 with open(BLOCKS, "w"): pass
                 for b in range(0, length):
+                    if b == 0:
+                        with open(BLOCKS, "a") as f:
+                            f.write(f"{blocks[0]}\n")
+                        continue
                     if not verifyBlock(blocks[b]):
                         with open(BLOCKS, "w") as f:
                             for line in original:
@@ -1019,4 +1022,4 @@ if __name__ == '__main__':
             pool.close()
             pool.join()
         end()
-        sys.exit()
+        os._exit(0)
