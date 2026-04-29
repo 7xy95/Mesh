@@ -49,6 +49,13 @@ def getDifficultyFromTs3(tss: list[int]) -> float:
     diff = math.log2(avg/TARGET)
     diff = max(min(diff, 0.5), -0.5)
     return round(diff, 2)
+def getDifficultyFromTs4(tss: list[int]) -> float:
+    TARGET = 300
+    avg = abs(tss[1]-tss[0])/10
+    diff = math.log2(avg/TARGET)
+    diff_ = max(min(diff, 1), -1)
+    if abs(diff_) == 1: diff_ += (diff - diff_)/4
+    return round(diff_, 2)
 def getTs(block: str) -> int:
     header = block.strip().split(",", 1)[0]
     return int(header.split("|")[2])
@@ -62,7 +69,8 @@ def getDifficultyBits(blockIndex: int) -> float:
     for i in range(1, len(tss)):
         if i <= 155: net += getDifficultyFromTs([tss[i - 1], tss[i]])
         elif i <= 7680: net += getDifficultyFromTs2([tss[i - 5], tss[i]])
-        else: net += getDifficultyFromTs3([tss[i - 25], tss[i]])
+        elif i <= 7950: net += getDifficultyFromTs3([tss[i - 25], tss[i]])
+        elif (i+1) % 10 == 0: net += getDifficultyFromTs4([tss[i - 10], tss[i]])
     return 230+net
 def getBlockReward(blockIndex: int) -> int:
     if blockIndex < 5_000: return 10000
